@@ -1,6 +1,5 @@
 (ns ffcop.views.welcome
-  (:require [ffcop.views.common :as common]
-            [noir.content.pages :as pages])
+  (:require [ffcop.views.common :as common])
   (:use noir.core
         hiccup.core
         hiccup.page-helpers))
