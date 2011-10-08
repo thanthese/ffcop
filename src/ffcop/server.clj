@@ -9,3 +9,5 @@
     (server/start port {:mode mode
                         :ns 'ffcop})))
 
+(def handler (server/gen-handler {:mode :prod
+                                  :ns 'ffcop}))
