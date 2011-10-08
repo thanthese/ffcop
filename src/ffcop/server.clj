@@ -1,7 +1,6 @@
 (ns ffcop.server
-  (:require [noir.server :as server]))
-
-(server/load-views "src/ffcop/views/")
+  (:require [noir.server :as server])
+  (:require [ffcop.views.welcome]))
 
 (defn -main [& m]
   (let [mode (keyword (or (first m) :dev))
@@ -9,5 +8,5 @@
     (server/start port {:mode mode
                         :ns 'ffcop})))
 
-(def handler (server/gen-handler {:mode :prod
+(def handler (server/gen-handler {:mode :dev
                                   :ns 'ffcop}))
