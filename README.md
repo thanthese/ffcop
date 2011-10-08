@@ -2,18 +2,30 @@
 
 Free and Friendly COP.
 
+## Requirements
+
+- Java 6
+- [leiningen](https://github.com/technomancy/leiningen).
+- postgres 8.4 + postgis
+
 ## Usage
 
-```bash
-lein deps
-lein ring server
-```
+The first time, run this first:
 
--- or --
+    lein deps
 
-```
-lein ring uberwar ffcop.war
-```
+### Run from REPL
+
+    lein repl
+    (-main)
+
+### Run from terminal
+
+    lein ring server
+
+### Build war
+
+    lein ring uberwar ffcop.war
 
 ## License
 
