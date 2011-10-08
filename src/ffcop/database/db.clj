@@ -7,9 +7,16 @@
          :user "ffcop"
          :password "magic-unlock"})
 
-(defn run [query]
+(defn run!
+  "Execute query against database, return result set."
+  [query]
   (sql/with-connection db (sql/with-query-results
                             results [query]
                             (into [] results))))
 
-(defn foo [] (str "My triumph will be " (str (run "select * from example1"))))
+(defn featuretype-names []
+  (map :tablename (run! "select tablename
+                         from pg_tables
+                         where schemaname='public'
+                           and tablename not in ('spatial_ref_sys',
+                                                 'geometry_columns')")))
