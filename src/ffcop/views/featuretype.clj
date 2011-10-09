@@ -34,13 +34,23 @@
          (session/flash-put! {:error (extract-error e#)})
          (render ~url ~opts)))))
 
+(defn unserialize-fields [fields-string]
+  (partition 2 (clojure.string/split fields-string #"\|")))
+
 (defn notifications [flash]
   [:div
    (when (:error flash) [:div.error (:error flash)])
    (when (:msg flash) [:div.notice (:msg flash)])])
 
-(defn unserialize-fields [fields-string]
-  (partition 2 (clojure.string/split fields-string #"\|")))
+(defn featuretype-fields-list [ft-name]
+  [:table.span-8
+   [:tr [:th "Attribute Name"] [:th "Type"]]
+   (for [[name type] (db/fields ft-name)]
+     [:tr [:td name] [:td type]])])
+
+(defn featuretype-count [ft-name]
+  [:p ft-name " has "
+   [:span.strong (db/record-count ft-name)] " features."])
 
 ; list all feature types
 (defpage
@@ -57,9 +67,21 @@
        (for [name names]
          [:tr
           [:td.name name]
+          [:td (link-to (str "/featuretype/view/" name)
+                        "View")]
           [:td (link-to {:class "caution"}
                         (str "/featuretype/delete/" name)
-                        "Delete")]]) ])))
+                        "Delete")]])])))
+
+; gui for viewing a feature type
+(defpage
+  "/featuretype/view/:ft-name" {:keys [ft-name]}
+  (trier
+    "/featuretype" nil
+    (common/layout
+      [:h1 "View Feature Type " ft-name]
+      (featuretype-count ft-name)
+      (featuretype-fields-list ft-name))))
 
 ; gui for creating a new feature type
 (defpage
@@ -93,7 +115,7 @@
                   [:td (drop-down "types" valid-types type)]])]]
              [:div.clear (submit-button "Create Feature Type")])))
 
-; action that creates a new featuretype
+; action for creating a new featuretype
 (defpage
   [:put "/featuretype"] {:keys [ft-name serialized-ft-fields]}
   (let [ft-fields (unserialize-fields serialized-ft-fields)]
@@ -115,18 +137,14 @@
       (include-js "/js/featuretype.js")
       [:h1 "Delete Feature Type " ft-name]
       (notifications (session/flash-get))
-      [:p ft-name " has "
-       [:span.strong (db/record-count ft-name)] " features."]
+      (featuretype-count ft-name)
       [:p.strong "This operation cannot be undone."]
       (form-to {:onSubmit "return ft.ondelete()"} [:delete "/featuretype"]
                (hidden-field "ft-name" ft-name)
                (submit-button {:class "caution"} "Delete Feature Type"))
-      [:table.span-8
-       [:tr [:th "Attribute Name"] [:th "Type"]]
-       (for [[name type] (db/fields ft-name)]
-         [:tr [:td name] [:td type]])])))
+      (featuretype-fields-list ft-name))))
 
-; action that deletes a featuretype
+; action for deleting featuretype
 (defpage
   [:delete "/featuretype"] {:keys [ft-name]}
   (trier

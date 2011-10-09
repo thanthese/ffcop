@@ -33,3 +33,7 @@ var ft = function() {
   }
 }()
 
+$(function() {
+  var textfield = $('input.text:first')
+  if(textfield) textfield.focus().select()
+})
