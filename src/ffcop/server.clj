@@ -1,7 +1,7 @@
 (ns ffcop.server
   (:require [noir.server :as server])
   ; must explicitly include all view files for uberwar to work
-  (:require [ffcop.views.welcome]))
+  (:require [ffcop.views.featuretype]))
 
 ; repl entry point
 (defn -main [& m]
