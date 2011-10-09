@@ -19,9 +19,8 @@
 (defn extract-error
   "Extract the human-readable part of the java exception."
   [e]
-  (if (.getNextException e)
-    (.getMessage (.getNextException e))
-    (.getMessage e)))
+  (.getMessage (or (.getNextException e)
+                   e)))
 
 (defmacro trier
   "General way of handling errors in a defpage.  Dumps a pretty
