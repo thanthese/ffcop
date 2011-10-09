@@ -40,3 +40,7 @@ label {
   padding: 2px 6px;
   color: #333333;
 }
+
+form {
+  padding-bottom: 2em;
+}

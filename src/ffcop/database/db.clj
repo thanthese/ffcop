@@ -7,7 +7,7 @@
          :user "ffcop"
          :password "magic-unlock"})
 
-(defn run!
+(defn run
   "Execute query against database, return result set."
   [query]
   (sql/with-connection db (sql/with-query-results
@@ -23,11 +23,11 @@
 (defn featuretype-names
   "Current featuretype names."
   []
-  (map :tablename (run! "select tablename
-                         from pg_tables
-                         where schemaname='public'
-                           and tablename not in ('spatial_ref_sys',
-                                                 'geometry_columns')")))
+  (map :tablename (run "select tablename
+                        from pg_tables
+                        where schemaname='public'
+                          and tablename not in ('spatial_ref_sys',
+                                                'geometry_columns')")))
 
 (defn valid-featuretype-name
   "Return root (name) if featuretype name is availble.  Otherwise,
@@ -59,7 +59,35 @@
         [n type "primary key"]
         [n type]))))
 
-(defn create-featuretype [name fields]
+(defn create-featuretype
+  "Create new table and return name."
+  [name fields]
   (let [n (valid-featuretype-name (legal-chars name))
         fs (enchance-featuretype-fields fields)]
-    (sql/with-connection db (apply (partial sql/create-table n) fs))))
+    (do
+      (sql/with-connection db (apply (partial sql/create-table n) fs))
+      n)))
+
+(defn delete-table [tablename]
+  (sql/with-connection db (sql/drop-table tablename)))
+
+(defn fields [tablename]
+  (let [results (run (str "SELECT
+                            a.attname AS name,
+                            t.typname AS type
+                          FROM
+                            pg_class c,
+                            pg_attribute a,
+                            pg_type t
+                          WHERE
+                            c.relname = '" tablename "'
+                            and a.attnum > 0
+                            and a.attrelid = c.oid
+                            and a.atttypid = t.oid
+                          ORDER BY a.attnum;"))]
+    (for [{n :name t :type} results]
+      [n t])))
+
+(defn record-count [tablename]
+  (let [results (run (str "select count(*) from " tablename))]
+    (get-in results [0 :count])))

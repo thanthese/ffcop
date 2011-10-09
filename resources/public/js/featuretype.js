@@ -18,12 +18,17 @@ var ft = function() {
     },
 
     onsubmit: function() {
-      var serialized = $('tr').map(function(i, tr) {
+      var serialized = $('tr.field').map(function(i, tr) {
           return sanitize($(tr).find('input').val())
                + "|"
                + sanitize($(tr).find('select :selected').text())})
         .toArray().join("|")
       $("#serialized-ft-fields").val(serialized)
+    },
+
+    ondelete: function() {
+      return confirm("WARNING: This operation cannot be undone. "
+          + "Are you sure you want to delete this featuretype?")
     }
   }
 }()
