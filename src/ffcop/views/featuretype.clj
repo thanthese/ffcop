@@ -37,18 +37,23 @@
              default-featuretype
              featuretype)]
     (common/layout
+      (include-js "/js/featuretype.js")
       [:h1 "Feature Types / Create"]
       (label {:class "important-name"} "" "Feature Type Name")
       (text-field {:class "text"} "featuretype-name"
                   (db/first-available-featuretype-name ))
       (form-to [:put "/featuretype"]
                (hidden-field "featuretype")
-               [:p [:span.fake-button "+"] " Add field"]
+               [:p
+                [:span.fake-button {:onclick "ft.addField()"} "+"]
+                " Add field"]
                [:div.span-8.last
-                [:table
+                [:table.fields
                  (for [{:keys [name type]} ft]
-                   [:tr
-                    [:td [:span.fake-button "-"]]
-                    [:td (text-field {:class "text"} name name)]
+                   [:tr.field
+                    [:td [:span.fake-button
+                          {:onclick "ft.deleteField(this)"}
+                          "-"]]
+                    [:td (text-field {:class "text name"} name name)]
                     [:td (drop-down "types" valid-types type)]])]]
                [:div.clear (submit-button "Create Feature Type")]))))
