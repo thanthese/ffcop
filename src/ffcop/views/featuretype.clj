@@ -23,38 +23,32 @@
                         (str "/featuretype/delete/" name)
                         "Delete")]]) ])))
 
-(def types ["geometry" "text" "integer" "boolean"])
+(def valid-types ["text" "integer" "boolean" "geometry"])
 
 (def default-featuretype
-  [{:name "the_geom"
-    :type "geometry"
-    :value "N/A"}
-   {:name "description"
-    :type "text"
-    :value "best field yet!"}
-   {:name "count"
-    :type "integer"
-    :value 42}
-   {:name "isCool"
-    :type "boolean"
-    :value true}])
-
-(defpartial
-  featuretype-fields [featuretype]
-  (for [{:keys [name type value]} featuretype]
-    (cond (= type "geometry") "Geometry is hard"
-          (= type "text") [:tr
-                           [:td name]
-                           [:td value]
-                           [:td type]])))
+  [{:name "the_geom"        :type "geometry"}
+   {:name "description"     :type "text"}
+   {:name "default_graphic" :type "text"}
+   {:name "edit_url"        :type "text"}])
 
 (defpage
   "/featuretype/create" [:as featuretype]
-  (let [ft (if (nil? featuretype)
+  (let [ft (if (empty? featuretype)
              default-featuretype
              featuretype)]
     (common/layout
       [:h1 "Feature Types / Create"]
+      (label {:class "important-name"} "" "Feature Type Name")
+      (text-field {:class "text"} "featuretype-name"
+                  (db/first-available-featuretype-name ))
       (form-to [:put "/featuretype"]
-               (label "testing" "test")
-               (text-field "Testing" "Some default")))))
+               (hidden-field "featuretype")
+               [:p [:span.fake-button "+"] " Add field"]
+               [:div.span-8.last
+                [:table
+                 (for [{:keys [name type]} ft]
+                   [:tr
+                    [:td [:span.fake-button "-"]]
+                    [:td (text-field {:class "text"} name name)]
+                    [:td (drop-down "types" valid-types type)]])]]
+               [:div.clear (submit-button "Create Feature Type")]))))

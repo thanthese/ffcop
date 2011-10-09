@@ -28,3 +28,15 @@ div.header {
 .important-name {
   font-size: 1.2em;
 }
+
+label {
+  padding-right: 0.8em;
+}
+
+.fake-button {
+  background-color:#FCFCFC;
+  border:1px solid #CCCCCC;
+  cursor: pointer;
+  padding: 2px 6px;
+  color: #333333;
+}
