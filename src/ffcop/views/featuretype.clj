@@ -24,8 +24,8 @@
 
 (defmacro trier
   "General way of handling errors in a defpage.  Dumps a pretty
-  message into flash.
-  Example:
+  message into flash and renders the url with opts.
+  Example usage:
     (trier '/featuretype/delete' {:ft-name ft-name} (+ 1 2 3))"
   [url opts body]
   `(try ~body
@@ -67,11 +67,10 @@
        (for [name names]
          [:tr
           [:td.name name]
-          [:td (link-to (str "/featuretype/view/" name)
-                        "View")]
+          [:td (link-to (str "/featuretype/view/" name) "View")]
+          [:td (link-to (str "/featuretype/edit/" name) "Edit")]
           [:td (link-to {:class "caution"}
-                        (str "/featuretype/delete/" name)
-                        "Delete")]])])))
+                        (str "/featuretype/delete/" name) "Delete")]])])))
 
 ; gui for viewing a feature type
 (defpage
@@ -151,6 +150,52 @@
     "/featuretype" nil
     (do
       (db/delete-table ft-name)
-      (session/flash-put! {:msg (str "Feature Type " ft-name
-                                     " has been deleted.")})
+      (session/flash-put!
+        {:msg (str "Feature Type " ft-name " has been deleted.")})
       (render "/featuretype"))))
+
+; gui for editing featuretype
+(defpage
+  "/featuretype/edit/:ft-name" {:keys [ft-name]}
+  (common/layout
+    (include-js "/js/featuretype.js")
+    [:h1 "Edit Feature Type " ft-name]
+    (notifications (session/flash-get))
+    [:table.span-8
+     [:tr [:th "Attribute Name"] [:th "Type"]]
+     (form-to
+       [:get (str "/featuretype/field/add/" ft-name)]
+       [:tr
+        [:td (text-field "name")]
+        [:td (drop-down "type" valid-types)]
+        [:td (submit-button "Add")]])
+     (for [[name type] (db/fields ft-name)]
+       [:tr
+        [:td name]
+        [:td type]
+        [:td (link-to (str "/featuretype/field/rename/" ft-name "/" name)
+                      "Rename")]
+        [:td (link-to (str "/featuretype/field/delete/" ft-name "/" name)
+                      "Delete")]])]))
+
+; action for adding field
+(defpage
+  "/featuretype/field/add/:ft-name" {:keys [ft-name name type]}
+  (trier
+    "/featuretype/edit/:ft-name" {:ft-name ft-name}
+    (do
+      (db/add-column ft-name name type)
+      (session/flash-put!
+        {:msg [:span "Field " [:span.strong name]
+                   " of type " [:span.strong type]
+                   " added to " [:span.strong name] "."]})
+      (render "/featuretype/edit/:ft-name" {:ft-name ft-name}))))
+
+;; STUB
+; gui for deleting field
+(defpage
+  "/featuretype/field/delete/:ft-name/:name" {:keys [ft-name name]}
+  (common/layout
+    (include-js "/js/featuretype.js")
+    [:h1 "Delete field " name " from Feature Type " ft-name]
+    (notifications (session/flash-get))))

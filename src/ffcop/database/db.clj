@@ -71,6 +71,12 @@
 (defn delete-table [tablename]
   (sql/with-connection db (sql/drop-table tablename)))
 
+(defn add-column [tablename fieldname fieldtype]
+  (do
+    (sql/with-connection
+      db (sql/do-commands (str "ALTER TABLE " tablename "
+                               ADD COLUMN " fieldname " " fieldtype)))))
+
 (defn fields [tablename]
   (let [results (run (str "SELECT
                             a.attname AS name,
