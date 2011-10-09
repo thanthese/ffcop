@@ -17,26 +17,14 @@ div.header {
   font-size: 1.1em;
 }
 
+.caution {
+  color: red;
+}
+
 .notice {
   border-radius: 5px;
 }
 
-a:link:after, a:visited:after {
-  content: "";
-}
-
-.narrow {
-  width: 2em;
-}
-
-tr.no-background td {
-  background: none !important;
-}
-
-span.divider {
-  padding: 0.5em;
-}
-
-td, a {
-    text-decoration: none !important;
+.important-name {
+  font-size: 1.2em;
 }
