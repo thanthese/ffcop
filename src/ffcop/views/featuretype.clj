@@ -7,4 +7,5 @@
 
 (defpage "/featuretype" []
          (common/layout
+           [:h1 "Feature Types"]
            (unordered-list (db/featuretype-names))))

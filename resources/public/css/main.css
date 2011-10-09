@@ -1,0 +1,42 @@
+div.header {
+  background: none repeat scroll 0 0 #5A73AD;
+  color: #FFFFFF;
+  margin-bottom: 1em;
+  padding: 0.6em;
+  text-align: right;
+  box-shadow: 0px 3px 5px #DDD;
+  margin-bottom: 3em;
+}
+
+div.header {
+  color: white;
+}
+
+.strong {
+  font-weight: bolder;
+  font-size: 1.1em;
+}
+
+.notice {
+  border-radius: 5px;
+}
+
+a:link:after, a:visited:after {
+  content: "";
+}
+
+.narrow {
+  width: 2em;
+}
+
+tr.no-background td {
+  background: none !important;
+}
+
+span.divider {
+  padding: 0.5em;
+}
+
+td, a {
+    text-decoration: none !important;
+}
