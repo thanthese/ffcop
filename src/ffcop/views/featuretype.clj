@@ -1,6 +1,7 @@
 (ns ffcop.views.featuretype
   (:require [ffcop.views.common :as common])
   (:require [ffcop.database.db :as db])
+  (:require [noir.session :as session])
   (:use noir.core
         hiccup.core
         hiccup.form-helpers
@@ -25,33 +26,37 @@
 
 (def valid-types ["text" "integer" "boolean" "geometry"])
 
-(def default-featuretype
-  [{:name "the_geom"        :type "geometry"}
-   {:name "description"     :type "text"}
-   {:name "default_graphic" :type "text"}
-   {:name "edit_url"        :type "text"}])
+(def default-fields
+  [["id"              "integer"]
+   ["the_geom"        "geometry"]
+   ["description"     "text"]
+   ["default_graphic" "text"]
+   ["edit_url"        "text"]])
 
 (defpage
-  "/featuretype/create" [:as featuretype]
-  (let [ft (if (empty? featuretype)
-             default-featuretype
-             featuretype)]
+  "/featuretype/create"
+  {:keys [ft-name ft-fields]
+   :or {ft-name (db/valid-featuretype-name "untitled")
+        ft-fields default-fields}}
+  (let [flash (session/flash-get)
+        error (:error flash)]
     (common/layout
       (include-js "/js/featuretype.js")
       [:h1 "Feature Types / Create"]
-
-      (form-to {:onSubmit "return ft.onsubmit()"}
-               [:put "/featuretype"]
-               (hidden-field "featuretype-fields")
+      [:p "Default fields have special meaning.  Don't delete them unless you
+          know what you're doing."]
+      [:p "Valid field names are alphanumeric characters and _."]
+      (when error [:div.error error])
+      (form-to {:onSubmit "return ft.onsubmit()"} [:put "/featuretype"]
+               (hidden-field "serialized-ft-fields")
                (label {:class "important-name"} "" "Feature Type Name")
-               (text-field {:class "text"} "featuretype-name"
-                           (db/first-available-featuretype-name))
+               (text-field {:class "text"} "ft-name" ft-name)
                [:p
                 [:span.fake-button {:onclick "ft.addField()"} "+"]
                 " Add field"]
                [:div.span-8.last
                 [:table.fields
-                 (for [{:keys [name type]} ft]
+                 (for [[name type] ft-fields]
                    [:tr.field
                     [:td [:span.fake-button
                           {:onclick "ft.deleteField(this)"}
@@ -60,8 +65,26 @@
                     [:td (drop-down "types" valid-types type)]])]]
                [:div.clear (submit-button "Create Feature Type")]))))
 
+(defn unserialize-fields [fields-string]
+  (partition 2 (clojure.string/split fields-string #"\|")))
+
+(defn extract-error
+  "Extract the human-readable part of the java exception."
+  [e]
+  (.getMessage (.getNextException e)))
+
 (defpage
-  [:put "/featuretype"] {:keys [featuretype-name featuretype-fields]}
-  (db/create-featuretype
-    featuretype-name
-    (partition 2 (clojure.string/split featuretype-fields #"\|"))))
+  [:put "/featuretype"] {:keys [ft-name serialized-ft-fields]}
+  (let [ft-fields (unserialize-fields serialized-ft-fields)]
+    (try
+      (do
+        (db/create-featuretype
+          ft-name
+          ft-fields)
+        "Table added")
+      (catch Exception e
+        (do
+          (session/flash-put! {:error (extract-error e)})
+          (render "/featuretype/create"
+                  {:ft-name ft-name
+                   :ft-fields ft-fields}))))))

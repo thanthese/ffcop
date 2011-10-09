@@ -8,6 +8,7 @@ var ft = function() {
     addField: function() {
       $('tr.field:last').clone().appendTo('table.fields')
       $('tr.field:last .name').val("")
+      $('tr.field:last input').focus()
     },
 
     deleteField: function(span) {
@@ -22,7 +23,7 @@ var ft = function() {
                + "|"
                + sanitize($(tr).find('select :selected').text())})
         .toArray().join("|")
-      $("#featuretype-fields").val(serialized)
+      $("#serialized-ft-fields").val(serialized)
     }
   }
 }()

@@ -20,18 +20,25 @@
 (defn not-in? [& args]
   (not (apply in? args)))
 
-(defn featuretype-names []
+(defn featuretype-names
+  "Current featuretype names."
+  []
   (map :tablename (run! "select tablename
                          from pg_tables
                          where schemaname='public'
                            and tablename not in ('spatial_ref_sys',
                                                  'geometry_columns')")))
 
-(defn first-available-featuretype-name []
+(defn valid-featuretype-name
+  "Return root (name) if featuretype name is availble.  Otherwise,
+  root_0, root_1, root_2, ... until an available name is found."
+  [root]
   (let [names (featuretype-names)]
-    (first (drop-while #(in? % names)
-                       (map (partial str "untitled_")
-                            (iterate inc 0))))))
+    (if (not-in? root names)
+      root
+      (first (drop-while #(in? % names)
+                         (map (partial str root "_")
+                              (iterate inc 0)))))))
 
 (defn legal-chars
   "Return forcibly legalized version of text: lower case, spaces to
@@ -42,5 +49,17 @@
     (clojure.string/replace #" " "_")
     (clojure.string/replace #"[^a-z0-9_]" "")))
 
+(defn enchance-featuretype-fields
+  "Fields coming from the views aren't perfect.  Correct and expand on
+  them here."
+  [fields]
+  (for [[name type] fields]
+    (let [n (legal-chars name)]
+      (if (= n "id")
+        [n type "primary key"]
+        [n type]))))
+
 (defn create-featuretype [name fields]
-  fields)
+  (let [n (valid-featuretype-name (legal-chars name))
+        fs (enchance-featuretype-fields fields)]
+    (sql/with-connection db (apply (partial sql/create-table n) fs))))
