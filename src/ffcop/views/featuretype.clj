@@ -39,11 +39,13 @@
     (common/layout
       (include-js "/js/featuretype.js")
       [:h1 "Feature Types / Create"]
-      (label {:class "important-name"} "" "Feature Type Name")
-      (text-field {:class "text"} "featuretype-name"
-                  (db/first-available-featuretype-name ))
-      (form-to [:put "/featuretype"]
-               (hidden-field "featuretype")
+
+      (form-to {:onSubmit "return ft.onsubmit()"}
+               [:put "/featuretype"]
+               (hidden-field "featuretype-fields")
+               (label {:class "important-name"} "" "Feature Type Name")
+               (text-field {:class "text"} "featuretype-name"
+                           (db/first-available-featuretype-name))
                [:p
                 [:span.fake-button {:onclick "ft.addField()"} "+"]
                 " Add field"]
@@ -57,3 +59,9 @@
                     [:td (text-field {:class "text name"} name name)]
                     [:td (drop-down "types" valid-types type)]])]]
                [:div.clear (submit-button "Create Feature Type")]))))
+
+(defpage
+  [:put "/featuretype"] {:keys [featuretype-name featuretype-fields]}
+  (db/create-featuretype
+    featuretype-name
+    (partition 2 (clojure.string/split featuretype-fields #"\|"))))

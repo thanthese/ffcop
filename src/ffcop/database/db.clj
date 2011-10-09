@@ -32,3 +32,15 @@
     (first (drop-while #(in? % names)
                        (map (partial str "untitled_")
                             (iterate inc 0))))))
+
+(defn legal-chars
+  "Return forcibly legalized version of text: lower case, spaces to
+  underscores, alpha-numeric only."
+  [text]
+  (-> text
+    (clojure.string/lower-case)
+    (clojure.string/replace #" " "_")
+    (clojure.string/replace #"[^a-z0-9_]" "")))
+
+(defn create-featuretype [name fields]
+  fields)
