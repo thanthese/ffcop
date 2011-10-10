@@ -1,0 +1,4 @@
+- redirects instead of renders
+- deployable as war (root problems)
+- security
+- put in a remap away from the "/" page to somewhere
