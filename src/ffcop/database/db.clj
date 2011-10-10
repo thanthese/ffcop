@@ -75,7 +75,8 @@
   (do
     (sql/with-connection
       db (sql/do-commands (str "ALTER TABLE " tablename "
-                               ADD COLUMN " fieldname " " fieldtype)))))
+                               ADD COLUMN " (legal-chars fieldname) " "
+                               fieldtype)))))
 
 (defn fields [tablename]
   (let [results (run (str "SELECT
