@@ -5,8 +5,8 @@ Free and Friendly COP.
 ## Requirements
 
 - Java 6
-- [leiningen](https://github.com/technomancy/leiningen
-- postgres 8.4 + postgis
+- [leiningen](https://github.com/technomancy/leiningen)
+- postgresql 8.4, with postgis
 
 ## Usage
 
