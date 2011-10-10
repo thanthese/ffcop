@@ -10,9 +10,13 @@ Free and Friendly COP.
 
 ## Usage
 
-The first time, run this first:
+The first time, install dependencies
 
     lein deps
+
+and initialize the database
+
+    sh src/ffcop/database/reinit-db.sh
 
 ### Run from REPL
 
