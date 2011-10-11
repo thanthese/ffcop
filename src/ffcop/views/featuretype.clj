@@ -2,6 +2,7 @@
   (:require [ffcop.views.common :as common])
   (:require [ffcop.database.db :as db])
   (:require [noir.session :as session])
+  (:require [noir.response :as resp])
   (:use noir.core
         hiccup.core
         hiccup.form-helpers
@@ -125,7 +126,7 @@
         (do
           (session/flash-put!
             {:msg (str "Feature Type " final-name" created.")})
-          (render "/featuretype"))))))
+          (resp/redirect "/featuretype"))))))
 
 ; gui for deleting a featuretype
 (defpage
@@ -152,7 +153,7 @@
       (db/delete-table ft-name)
       (session/flash-put!
         {:msg (str "Feature Type " ft-name " has been deleted.")})
-      (render "/featuretype"))))
+      (resp/redirect "/featuretype"))))
 
 ; gui for editing featuretype
 (defpage
@@ -189,7 +190,7 @@
         {:msg [:span "Field " [:span.strong name]
                    " of type " [:span.strong type]
                    " added to " [:span.strong name] "."]})
-      (render "/featuretype/edit/:ft-name" {:ft-name ft-name}))))
+      (resp/redirect (str "/featuretype/edit/" ft-name)))))
 
 ;; STUB
 ; gui for deleting field

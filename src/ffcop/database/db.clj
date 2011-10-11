@@ -27,7 +27,8 @@
                         from pg_tables
                         where schemaname='public'
                           and tablename not in ('spatial_ref_sys',
-                                                'geometry_columns')")))
+                                                'geometry_columns')
+                        order by tablename")))
 
 (defn valid-featuretype-name
   "Return root (name) if featuretype name is availble.  Otherwise,
