@@ -2,3 +2,4 @@
 - security
 - add a config file
 - put in a remap away from the "/" page to somewhere
+- add a context root config option, and put it around all links.  add explanation to readme.
