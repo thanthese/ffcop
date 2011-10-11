@@ -29,7 +29,12 @@ and initialize the database
 
 ### Build war
 
-    lein ring uberwar ffcop.war
+    lein ring uberwar ROOT.war
+
+Note: it looks like you *have* to deploy the app to tomcat as root. If
+you don't, the addition of the app name in the url breaks all paths.
+
+This trick plays nicely with a geoserver running in the same tomcat.
 
 ## License
 
