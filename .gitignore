@@ -5,3 +5,8 @@ pom.xml
 .lein-deps-sum
 *swp
 *war
+resources/public/GeoExt/
+resources/public/OpenLayers-2.11/
+resources/public/ext-3.2.1/
+resources/public/ext-3.4.0/
+resources/public/ext-4.0.2a/
