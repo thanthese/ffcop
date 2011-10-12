@@ -1,6 +1,6 @@
 var ft = function() {
 
-  function sanitize(text) {
+  function remove-pipes(text) {
     return text.replace(/\|/g, "")
   }
 
@@ -19,9 +19,9 @@ var ft = function() {
 
     onsubmit: function() {
       var serialized = $('tr.field').map(function(i, tr) {
-          return sanitize($(tr).find('input').val())
+          return remove-pipes($(tr).find('input').val())
                + "|"
-               + sanitize($(tr).find('select :selected').text())})
+               + remove-pipes($(tr).find('select :selected').text())})
         .toArray().join("|")
       $("#serialized-ft-fields").val(serialized)
     },

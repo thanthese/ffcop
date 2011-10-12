@@ -1,6 +1,7 @@
 (ns ffcop.views.featuretype
   (:require [ffcop.views.common :as common])
   (:require [ffcop.database.db :as db])
+  (:require [ffcop.config :as config])
   (:require [noir.session :as session])
   (:require [noir.response :as resp])
   (:use noir.core
@@ -8,32 +9,21 @@
         hiccup.form-helpers
         hiccup.page-helpers))
 
-(def valid-types ["text" "integer" "boolean" "geometry"])
-
-(def default-fields
-  [["id"              "integer"]
-   ["the_geom"        "geometry"]
-   ["description"     "text"]
-   ["default_graphic" "text"]
-   ["edit_url"        "text"]])
-
 (defn extract-error
   "Extract the human-readable part of the java exception."
   [e]
   (.getMessage (or (.getNextException e)
                    e)))
 
-(defmacro trier
-  "General way of handling errors in a defpage.  Dumps a pretty
-  message into flash and renders the url with opts.
-  Example usage:
-    (trier '/featuretype/delete' {:ft-name ft-name} (+ 1 2 3))"
-  [url opts body]
+(defmacro on-error
+  "On error in body, dump pretty message in flash and perform action.
+  The action will probably be either a render or a redirect."
+  [action body]
   `(try ~body
      (catch Exception e#
        (do
          (session/flash-put! {:error (extract-error e#)})
-         (render ~url ~opts)))))
+         ~action))))
 
 (defn unserialize-fields [fields-string]
   (partition 2 (clojure.string/split fields-string #"\|")))
@@ -53,17 +43,16 @@
   [:p ft-name " has "
    [:span.strong (db/record-count ft-name)] " features."])
 
-; list all feature types
+; gui for listing all feature types
 (defpage
-  [:get "/featuretype"] []
-  (let [names (db/featuretype-names)
-        num (count names)]
+  "/featuretype" []
+  (let [names (db/featuretype-names)]
     (common/layout
       [:h1 "Feature Types"]
       (notifications (session/flash-get))
       [:p (link-to (str "/featuretype/create") "Create")
        " new feature type."]
-      [:p "Displaying " [:span.strong num] " feature types."]
+      [:p "Displaying " [:span.strong (count names)] " feature types."]
       [:table.span-8
        (for [name names]
          [:tr
@@ -73,11 +62,11 @@
           [:td (link-to {:class "caution"}
                         (str "/featuretype/delete/" name) "Delete")]])])))
 
-; gui for viewing a feature type
+; gui for viewing one particular feature type
 (defpage
   "/featuretype/view/:ft-name" {:keys [ft-name]}
-  (trier
-    "/featuretype" nil
+  (on-error
+    (resp/redirect "/featuretype")
     (common/layout
       [:h1 "View Feature Type " ft-name]
       (featuretype-count ft-name)
@@ -88,15 +77,16 @@
   "/featuretype/create"
   {:keys [ft-name ft-fields]
    :or {ft-name (db/valid-featuretype-name "untitled")
-        ft-fields default-fields}}
+        ft-fields config/default-fields}}
   (common/layout
     (include-js "/js/featuretype.js")
     [:h1 "Feature Types / Create"]
-    [:p "Default fields have special meaning.  Don't delete them unless you
-        know what you're doing."]
+    [:p "Default fields have special meaning. Don't delete them unless
+        you know what you're doing."]
     [:p "Valid field names are alphanumeric characters and _."]
     (notifications (session/flash-get))
-    (form-to {:onSubmit "return ft.onsubmit()"} [:put "/featuretype"]
+    (form-to {:onSubmit "return ft.onsubmit()"}
+             [:put "/featuretype/create"]
              (hidden-field "serialized-ft-fields")
              (label {:class "important-name"} "" "Feature Type Name")
              (text-field {:class "text"} "ft-name" ft-name)
@@ -112,17 +102,17 @@
                         {:onclick "ft.deleteField(this)"}
                         "-"]]
                   [:td (text-field {:class "text name"} name name)]
-                  [:td (drop-down "types" valid-types type)]])]]
+                  [:td (drop-down "types" config/valid-types type)]])]]
              [:div.clear (submit-button "Create Feature Type")])))
 
 ; action for creating a new featuretype
 (defpage
-  [:put "/featuretype"] {:keys [ft-name serialized-ft-fields]}
+  [:put "/featuretype/create"] {:keys [ft-name serialized-ft-fields]}
   (let [ft-fields (unserialize-fields serialized-ft-fields)]
-    (trier
-      "/featuretype/create" {:ft-name ft-name
-                             :ft-fields ft-fields}
-      (let [final-name (db/create-featuretype ft-name ft-fields)]
+    (on-error
+      (render "/featuretype/create" {:ft-name ft-name
+                                     :ft-fields ft-fields})
+      (let [final-name (db/create-featuretype! ft-name ft-fields)]
         (do
           (session/flash-put!
             {:msg (str "Feature Type " final-name" created.")})
@@ -131,15 +121,16 @@
 ; gui for deleting a featuretype
 (defpage
   "/featuretype/delete/:ft-name" {:keys [ft-name]}
-  (trier
-    "/featuretype" nil
+  (on-error
+    (render "/featuretype")
     (common/layout
       (include-js "/js/featuretype.js")
       [:h1 "Delete Feature Type " ft-name]
       (notifications (session/flash-get))
       (featuretype-count ft-name)
       [:p.strong "This operation cannot be undone."]
-      (form-to {:onSubmit "return ft.ondelete()"} [:delete "/featuretype"]
+      (form-to {:onSubmit "return ft.ondelete()"}
+               [:delete "/featuretype"]
                (hidden-field "ft-name" ft-name)
                (submit-button {:class "caution"} "Delete Feature Type"))
       (featuretype-fields-list ft-name))))
@@ -147,10 +138,10 @@
 ; action for deleting featuretype
 (defpage
   [:delete "/featuretype"] {:keys [ft-name]}
-  (trier
-    "/featuretype" nil
+  (on-error
+    (render "/featuretype")
     (do
-      (db/delete-table ft-name)
+      (db/delete-table! ft-name)
       (session/flash-put!
         {:msg (str "Feature Type " ft-name " has been deleted.")})
       (resp/redirect "/featuretype"))))
@@ -165,10 +156,10 @@
     [:table.span-8
      [:tr [:th "Attribute Name"] [:th "Type"]]
      (form-to
-       [:get (str "/featuretype/field/add/" ft-name)]
+       [:put (str "/featuretype/edit/" ft-name)]
        [:tr
         [:td (text-field "name")]
-        [:td (drop-down "type" valid-types)]
+        [:td (drop-down "type" config/valid-types)]
         [:td (submit-button "Add")]])
      (for [[name type] (db/fields ft-name)]
        [:tr
@@ -181,15 +172,16 @@
 
 ; action for adding field
 (defpage
-  "/featuretype/field/add/:ft-name" {:keys [ft-name name type]}
-  (trier
-    "/featuretype/edit/:ft-name" {:ft-name ft-name}
+  [:put "/featuretype/edit/:ft-name"] {:keys [ft-name name type]}
+  (on-error
+    (render "/featuretype/edit/:ft-name" {:ft-name ft-name})
     (do
-      (db/add-column ft-name name type)
+      (db/add-column! ft-name name type)
       (session/flash-put!
-        {:msg [:span "Field " [:span.strong name]
-                   " of type " [:span.strong type]
-                   " added to " [:span.strong name] "."]})
+        {:msg [:span
+               "Field " [:span.strong name]
+               " of type " [:span.strong type]
+               " added to " [:span.strong name] "."]})
       (resp/redirect (str "/featuretype/edit/" ft-name)))))
 
 ;; STUB
