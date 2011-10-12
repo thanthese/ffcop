@@ -1,7 +1,7 @@
 (ns ffcop.views.featuretype
+  (:use [ffcop.config :as config :only [R]])
   (:require [ffcop.views.common :as common])
   (:require [ffcop.database.db :as db])
-  (:require [ffcop.config :as config])
   (:require [noir.session :as session])
   (:require [noir.response :as resp])
   (:use noir.core
