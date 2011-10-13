@@ -67,6 +67,33 @@ Ext.onReady(function() {
     autoScroll: true,
     padding: 5});
 
+  controls.push(new OpenLayers.Control.WMSGetFeatureInfo({
+    autoActivate: true,
+    infoFormat: "application/vnd.ogc.gml",
+    maxFeatures: 3,
+    eventListeners: {
+      "getfeatureinfo": function(e) {
+        var items = [];
+        Ext.each(e.features, function(feature) {
+          items.push({
+            xtype: "propertygrid",
+            title: feature.fid,
+            source: feature.attributes
+          });
+        });
+        new GeoExt.Popup({
+          title: "Feature Info",
+          width: 200,
+          height: 200,
+          layout: "accordion",
+          map: app.mapPanel,
+          location: e.xy,
+          items: items
+        }).show();
+      }
+    }
+  }));
+
   controls.push(
     new OpenLayers.Control.Navigation(),
     new OpenLayers.Control.Attribution(),
