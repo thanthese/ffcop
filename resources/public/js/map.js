@@ -96,7 +96,7 @@ Ext.onReady(function() {
 
   // wfs
   items.push({
-    xtype: "grid",
+    xtype: "editorgrid",
     ref: "featureGrid",
     title: "Feature Table",
     region: "south",
@@ -144,8 +144,8 @@ Ext.onReady(function() {
       geometryName, geometryType;
     // regular expression to detect the geometry column
     var geomRegex = /gml:(Multi)?(Point|Line|Polygon|Surface|Geometry).*/;
+    // mapping of xml schema data types to Ext JS data types
     var types = {
-      // mapping of xml schema data types to Ext JS data types
       "xsd:int": "int",
       "xsd:short": "int",
       "xsd:long": "int",
@@ -153,7 +153,6 @@ Ext.onReady(function() {
       "xsd:dateTime": "string",
       "xsd:double": "float",
       "xsd:decimal": "float",
-      // mapping of geometry types
       "Line": "Path",
       "Surface": "Polygon"
     };
@@ -164,6 +163,9 @@ Ext.onReady(function() {
       if (match) {
         // we found the geometry column
         geometryName = name;
+        // Geometry type for the sketch handler:
+        // match[2] is "Point", "Line", "Polygon", "Surface" or "Geometry"
+        geometryType = types[match[2]] || match[2];
       } else {
         // we have an attribute column
         fields.push({
@@ -173,7 +175,11 @@ Ext.onReady(function() {
         columns.push({
           xtype: types[type] == "string" ? "gridcolumn" : "numbercolumn",
           dataIndex: name,
-          header: name
+          header: name,
+          // textfield editor for strings, numberfield for others
+          editor: {
+            xtype: types[type] == "string" ? "textfield" : "numberfield"
+          }
         });
       }
     });
@@ -194,6 +200,11 @@ Ext.onReady(function() {
     }), new Ext.grid.ColumnModel(columns));
     app.featureGrid.store.bind(vectorLayer);
     app.featureGrid.getSelectionModel().bind(vectorLayer);
+
+    // Set the correct sketch handler according to the geometryType
+    drawControl.handler = new OpenLayers.Handler[geometryType](
+      drawControl, drawControl.callbacks, drawControl.handlerOptions
+    );
   }
 
   controls.push(
@@ -208,8 +219,7 @@ Ext.onReady(function() {
       return;
     }
     vectorLayer.removeAllFeatures();
-    app.featureGrid.reconfigure(
-    new Ext.data.Store(), new Ext.grid.ColumnModel([]));
+    app.featureGrid.reconfigure(new Ext.data.Store(), new Ext.grid.ColumnModel([]));
     var layer = node.layer;
     var url = layer.url.split("?")[0]; // the base url without params
     var schema = new GeoExt.data.AttributeStore({
@@ -231,16 +241,47 @@ Ext.onReady(function() {
     });
   }
 
+  var modifyControl = new OpenLayers.Control.ModifyFeature(
+    vectorLayer,
+    { autoActivate: true });
+  var drawControl = new OpenLayers.Control.DrawFeature(
+    vectorLayer,
+    OpenLayers.Handler.Polygon,
+    { handlerOptions: { multi: true } });
+  controls.push(modifyControl, drawControl);
+
   app = new Ext.Viewport({
     layout: "border",
-    items: items});
+    items: items });
+
+  var bbar = app.featureGrid.getBottomToolbar();
+  bbar.add([{
+      text: "Delete",
+      handler: function() {
+        app.featureGrid.getSelectionModel().each(function(rec) {
+          var feature = rec.getFeature();
+          modifyControl.unselectFeature(feature);
+          vectorLayer.removeFeatures([feature]);
+        });
+      }
+    },
+    new GeoExt.Action({
+      control: drawControl,
+      text: "Create",
+      enableToggle: true
+    })]);
+  bbar.doLayout();
+
+  var sm = app.featureGrid.getSelectionModel();
+  sm.unbind();
+  sm.bind(modifyControl.selectControl);
+  sm.on("beforerowselect", function() { sm.clearSelections(); });
 
   app.tree.getSelectionModel().on("selectionchange", setLayer);
-});
 
-var vectorLayer = new OpenLayers.Layer.Vector("Editable features");
-Ext.onReady(function() {
   app.mapPanel.map.addLayer(vectorLayer);
   app.featureGrid.store.bind(vectorLayer);
   app.featureGrid.getSelectionModel().bind(vectorLayer);
 });
+
+var vectorLayer = new OpenLayers.Layer.Vector("Editable features");
