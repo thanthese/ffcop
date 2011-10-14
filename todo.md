@@ -1,2 +1,3 @@
-- add a context root config option, and put it around all links.  add explanation to readme.
+- add a context root config option, and put it around all links.  add
+  explanation to readme.
 - security
