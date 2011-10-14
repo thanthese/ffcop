@@ -62,7 +62,10 @@
                        ADD COLUMN " (util/legal-chars fieldname) " "
                        fieldtype)))))
 
-(defn fields [tablename]
+(defn fields
+  "Return table's fields in form:
+      [[name1 type1] [name2 type2] ...]"
+  [tablename]
   (let [results (run (str "SELECT
                             a.attname AS name,
                             t.typname AS type

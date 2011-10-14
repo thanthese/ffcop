@@ -1,7 +1,7 @@
 (ns ffcop.views.featuretype
+  (:use [ffcop.config :as config :only [R]])
   (:require [ffcop.views.common :as common])
   (:require [ffcop.database.db :as db])
-  (:require [ffcop.config :as config])
   (:require [noir.session :as session])
   (:require [noir.response :as resp])
   (:use noir.core
@@ -28,20 +28,21 @@
 (defn unserialize-fields [fields-string]
   (partition 2 (clojure.string/split fields-string #"\|")))
 
-(defn notifications [flash]
+(defn h-notifications [flash]
   [:div
    (when (:error flash) [:div.error (:error flash)])
    (when (:msg flash) [:div.notice (:msg flash)])])
 
-(defn featuretype-fields-list [ft-name]
+(defn h-featuretype-fields [fields]
   [:table.span-8
    [:tr [:th "Attribute Name"] [:th "Type"]]
-   (for [[name type] (db/fields ft-name)]
+   (for [[name type] fields]
      [:tr [:td name] [:td type]])])
 
-(defn featuretype-count [ft-name]
-  [:p ft-name " has "
-   [:span.strong (db/record-count ft-name)] " features."])
+(defn h-featuretype-count [ft-name count]
+  [:p
+   [:span.strong ft-name] " has "
+   [:span.strong count] " features."])
 
 ; gui for listing all feature types
 (defpage
@@ -49,7 +50,7 @@
   (let [names (db/featuretype-names)]
     (common/layout
       [:h1 "Feature Types"]
-      (notifications (session/flash-get))
+      (h-notifications (session/flash-get))
       [:p (link-to (str "/featuretype/create") "Create")
        " new feature type."]
       [:p "Displaying " [:span.strong (count names)] " feature types."]
@@ -67,10 +68,12 @@
   "/featuretype/view/:ft-name" {:keys [ft-name]}
   (on-error
     (resp/redirect "/featuretype")
-    (common/layout
-      [:h1 "View Feature Type " ft-name]
-      (featuretype-count ft-name)
-      (featuretype-fields-list ft-name))))
+    (let [fields (db/fields ft-name)
+          count (db/record-count ft-name)]
+      (common/layout
+        [:h1 "View Feature Type " ft-name]
+        (h-featuretype-count ft-name count)
+        (h-featuretype-fields fields)))))
 
 ; gui for creating a new feature type
 (defpage
@@ -84,7 +87,7 @@
     [:p "Default fields have special meaning. Don't delete them unless
         you know what you're doing."]
     [:p "Valid field names are alphanumeric characters and _."]
-    (notifications (session/flash-get))
+    (h-notifications (session/flash-get))
     (form-to {:onSubmit "return ft.onsubmit()"}
              [:put "/featuretype/create"]
              (hidden-field "serialized-ft-fields")
@@ -123,17 +126,19 @@
   "/featuretype/delete/:ft-name" {:keys [ft-name]}
   (on-error
     (render "/featuretype")
-    (common/layout
-      (include-js "/js/featuretype.js")
-      [:h1 "Delete Feature Type " ft-name]
-      (notifications (session/flash-get))
-      (featuretype-count ft-name)
-      [:p.strong "This operation cannot be undone."]
-      (form-to {:onSubmit "return ft.ondelete()"}
-               [:delete "/featuretype"]
-               (hidden-field "ft-name" ft-name)
-               (submit-button {:class "caution"} "Delete Feature Type"))
-      (featuretype-fields-list ft-name))))
+    (let [fields (db/fields ft-name)
+          count (db/record-count ft-name)]
+      (common/layout
+        (include-js "/js/featuretype.js")
+        [:h1 "Delete Feature Type " ft-name]
+        (h-notifications (session/flash-get))
+        (h-featuretype-count ft-name count)
+        [:p.strong "This operation cannot be undone."]
+        (form-to {:onSubmit "return ft.ondelete()"}
+                 [:delete "/featuretype"]
+                 (hidden-field "ft-name" ft-name)
+                 (submit-button {:class "caution"} "Delete Feature Type"))
+        (h-featuretype-fields fields)))))
 
 ; action for deleting featuretype
 (defpage
@@ -149,26 +154,29 @@
 ; gui for editing featuretype
 (defpage
   "/featuretype/edit/:ft-name" {:keys [ft-name]}
-  (common/layout
-    (include-js "/js/featuretype.js")
-    [:h1 "Edit Feature Type " ft-name]
-    (notifications (session/flash-get))
-    [:table.span-8
-     [:tr [:th "Attribute Name"] [:th "Type"]]
-     (form-to
-       [:put (str "/featuretype/edit/" ft-name)]
-       [:tr
-        [:td (text-field "name")]
-        [:td (drop-down "type" config/valid-types)]
-        [:td (submit-button "Add")]])
-     (for [[name type] (db/fields ft-name)]
-       [:tr
-        [:td name]
-        [:td type]
-        [:td (link-to (str "/featuretype/field/rename/" ft-name "/" name)
-                      "Rename")]
-        [:td (link-to (str "/featuretype/field/delete/" ft-name "/" name)
-                      "Delete")]])]))
+  (on-error
+    (resp/redirect "/featuretype")
+    (let [fields (db/fields ft-name)]
+      (common/layout
+        (include-js "/js/featuretype.js")
+        [:h1 "Edit Feature Type " ft-name]
+        (h-notifications (session/flash-get))
+        [:table.span-8
+         [:tr [:th "Attribute Name"] [:th "Type"]]
+         (form-to
+           [:put (str "/featuretype/edit/" ft-name)]
+           [:tr
+            [:td (text-field "name")]
+            [:td (drop-down "type" config/valid-types)]
+            [:td (submit-button "Add")]])
+         (for [[name type] fields]
+           [:tr
+            [:td name]
+            [:td type]
+            [:td (link-to (str "/featuretype/field/rename/" ft-name
+                               "/" name) "Rename")]
+            [:td (link-to (str "/featuretype/field/delete/" ft-name
+                               "/" name) "Delete")]])]))))
 
 ; action for adding field
 (defpage
@@ -191,4 +199,4 @@
   (common/layout
     (include-js "/js/featuretype.js")
     [:h1 "Delete field " name " from Feature Type " ft-name]
-    (notifications (session/flash-get))))
+    (h-notifications (session/flash-get))))
