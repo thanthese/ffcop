@@ -2,7 +2,10 @@
   (:require [noir.server :as server])
   ; must explicitly include all view files for uberwar to work
   (:require [ffcop.views.featuretype])
+  (:use [hiccup.middleware :only (wrap-base-url)])
   (:require [ffcop.views.map]))
+
+(noir.server.handler/add-custom-middleware wrap-base-url)
 
 ; repl entry point
 (defn -main [& m]
