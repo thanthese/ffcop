@@ -5,6 +5,8 @@
   (:use [hiccup.middleware :only (wrap-base-url)])
   (:require [ffcop.views.map]))
 
+; fix context root problem.  Temporary fix until noir issue is resolved:
+;   https://github.com/ibdknox/noir/issues/32
 (noir.server.handler/add-custom-middleware wrap-base-url)
 
 ; repl entry point

@@ -1,9 +1,7 @@
-- add a context root config option, and put it around all links.  add
-  explanation to readme.
+- link styling bug
+- fix redirects
+- strip utilities
+- fix "not-in?"
+- modify readme about context root
 - security
-
-
-context root leads:
-- compojure: with-context
-- compojure: look at all data in the request (:context and :path-info)
-- try running example: https://github.com/weavejester/compojure-example
+- geoserver rest api interaction

@@ -113,7 +113,7 @@ Ext.onReady(function() {
                { name: "len", type: "float" }],
       proxy: new GeoExt.data.ProtocolProxy({
         protocol: new OpenLayers.Protocol.WFS({
-          url: "/geoserver/ows",
+          url: "http://localhost/geoserver/ows",
           version: "1.1.0",
           featureType: "parks",
           featureNS: "http://medford.opengeo.org",
@@ -255,21 +255,22 @@ Ext.onReady(function() {
     items: items });
 
   var bbar = app.featureGrid.getBottomToolbar();
-  bbar.add([{
-      text: "Delete",
+  bbar.add([
+    { text: "Delete",
       handler: function() {
+        app.featureGrid.store.featureFilter = new OpenLayers.Filter({
+          evaluate: function(feature) { return feature.state != OpenLayers.State.DELETE; } });
         app.featureGrid.getSelectionModel().each(function(rec) {
           var feature = rec.getFeature();
           modifyControl.unselectFeature(feature);
           vectorLayer.removeFeatures([feature]);
-        });
-      }
-    },
+          if (feature.state != OpenLayers.State.INSERT) {
+            feature.state = OpenLayers.State.DELETE;
+            vectorLayer.addFeatures([feature]); } }); } },
     new GeoExt.Action({
       control: drawControl,
       text: "Create",
-      enableToggle: true
-    })]);
+      enableToggle: true })]);
   bbar.doLayout();
 
   var sm = app.featureGrid.getSelectionModel();
