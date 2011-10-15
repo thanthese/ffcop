@@ -1,7 +1,3 @@
-- link styling bug
-- fix redirects
-- strip utilities
-- fix "not-in?"
-- modify readme about context root
+- add breadcrumbs
 - security
 - geoserver rest api interaction

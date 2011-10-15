@@ -3,8 +3,7 @@
 (defn in? [elem coll]
   (some (partial = elem) coll))
 
-(defn not-in? [& args]
-  (not (apply in? args)))
+(def not-in? (comp not in?))
 
 (defn legal-chars
   "Return forcibly legalized version of text: lower case, spaces to

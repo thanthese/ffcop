@@ -67,7 +67,7 @@
 (defpage
   "/featuretype/view/:ft-name" {:keys [ft-name]}
   (on-error
-    (resp/redirect "/featuretype")
+    (resp/redirect "../../featuretype")
     (let [fields (db/fields ft-name)
           count (db/record-count ft-name)]
       (common/layout
@@ -119,13 +119,13 @@
         (do
           (session/flash-put!
             {:msg (str "Feature Type " final-name" created.")})
-          (resp/redirect "/featuretype"))))))
+          (resp/redirect "../featuretype"))))))
 
 ; gui for deleting a featuretype
 (defpage
   "/featuretype/delete/:ft-name" {:keys [ft-name]}
   (on-error
-    (render "/featuretype")
+    (resp/redirect "../../featuretype")
     (let [fields (db/fields ft-name)
           count (db/record-count ft-name)]
       (common/layout
@@ -149,13 +149,13 @@
       (db/delete-table! ft-name)
       (session/flash-put!
         {:msg (str "Feature Type " ft-name " has been deleted.")})
-      (resp/redirect "/featuretype"))))
+      (render "/featuretype"))))
 
 ; gui for editing featuretype
 (defpage
   "/featuretype/edit/:ft-name" {:keys [ft-name]}
   (on-error
-    (resp/redirect "/featuretype")
+    (resp/redirect "../../featuretype")
     (let [fields (db/fields ft-name)]
       (common/layout
         (include-js "/js/featuretype.js")
@@ -190,7 +190,7 @@
                "Field " [:span.strong name]
                " of type " [:span.strong type]
                " added to " [:span.strong name] "."]})
-      (resp/redirect (str "/featuretype/edit/" ft-name)))))
+      (render "/featuretype/edit/:ft-name" {:ft-name ft-name}))))
 
 ;; STUB
 ; gui for deleting field

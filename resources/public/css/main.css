@@ -44,3 +44,7 @@ label {
 form {
   padding-bottom: 2em;
 }
+
+a:link:after, a:visited:after {
+  content: "";
+}

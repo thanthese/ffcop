@@ -27,14 +27,22 @@ and initialize the database
 
     lein ring server
 
-### Build war
+### Build war, no context root
+
+Option 1: with context root
+
+    lein ring uberwar ffcop.war
+
+Depending on how the location of your tomcat and ffcop directory, you
+may be able to simply run `sh super_deploy_dev.sh`.
+
+Option 2: without context root
 
     lein ring uberwar ROOT.war
 
-Note: it looks like you *have* to deploy the app to tomcat as root. If
-you don't, the addition of the app name in the url breaks all paths.
+## A note to developers
 
-This trick plays nicely with a geoserver running in the same tomcat.
+Conventions are listed in the `dev-conventions.md` file.
 
 ## License
 
