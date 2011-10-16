@@ -58,6 +58,21 @@
                :when (= name fieldname)]
            type)))
 
+(defn insert-into-geometry-columns! [tablename geom-type]
+  (sql/insert-record
+    "geometry_columns"
+    {:f_table_catalog ""
+     :f_table_schema "public"
+     :f_table_name tablename
+     :f_geometry_column "the_geom"
+     :coord_dimension 2
+     :srid 4326
+     :type geom-type}))
+
+(defn remove-from-geometry-columns! [tablename]
+  (do-command! "delete from geometry_columns
+                where f_table_name = '" tablename "'"))
+
 (defn create-featuretype!
   "Create new table and return name."
   [name fields]
@@ -130,18 +145,3 @@
   (let [results (run (str "select count(*) from " tablename
                           " where " field " is not null"))]
     (get-in results [0 :count])))
-
-(defn insert-into-geometry-columns! [tablename geom-type]
-  (sql/insert-record
-    "geometry_columns"
-    {:f_table_catalog ""
-     :f_table_schema "public"
-     :f_table_name tablename
-     :f_geometry_column "the_geom"
-     :coord_dimension 2
-     :srid 4326
-     :type geom-type}))
-
-(defn remove-from-geometry-columns! [tablename]
-  (do-command! "delete from geometry_columns
-                where f_table_name = '" tablename "'"))

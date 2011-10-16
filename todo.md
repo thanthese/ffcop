@@ -1,7 +1,8 @@
-- geoserver rest api interaction
+- geoserver rest api interaction, remove featuretype
 - security/users
 - layers
 - icon pool
 - icon <--> layer association
 - webeoc polling
 - permalinks
+- geoserver rest api rollbacks in case of problems

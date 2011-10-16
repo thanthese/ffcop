@@ -2,6 +2,7 @@
   (:require [ffcop.config :as config])
   (:require [ffcop.views.common :as common])
   (:require [ffcop.database.db :as db])
+  (:require [ffcop.geoserver :as geo])
   (:require [noir.session :as session])
   (:require [noir.response :as resp])
   (:use noir.core
@@ -130,9 +131,10 @@
                                      :ft-fields ft-fields})
       (let [final-name (db/create-featuretype! ft-name ft-fields)]
         (do
+          (geo/add-featuretype final-name)
           (session/flash-put!
             {:msg [:span
-                   "Feature Type " [:span.strong final-name]
+                   "Feature type " [:span.strong final-name]
                    " created."]})
           (resp/redirect "../featuretype"))))))
 
