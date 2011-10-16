@@ -13,13 +13,12 @@
 (defn- do-command!
   "Execute a single 'do something' query against the database.
   Concatenates multiple parameters into a single command/str.
-  Also makes those pesky spaces unnecessary.
-    Example: (do-command 'drop table' some-table)"
+    Example: (do-command 'drop table ' some-table)"
   [& command]
   (sql/with-connection
     config/db
     (sql/do-commands
-      (apply str (interpose " " command)))))
+      (apply str command))))
 
 (defn featuretype-names
   "Current featuretype names."
@@ -52,41 +51,55 @@
         [n type "primary key"]
         [n type]))))
 
+(defn- find-type-of
+  "Return the type of the given fieldname."
+  [fields fieldname]
+  (first (for [[name type] fields
+               :when (= name fieldname)]
+           type)))
+
 (defn create-featuretype!
   "Create new table and return name."
   [name fields]
-  (let [nm (valid-featuretype-name (util/legal-chars name))
+  (let [type (find-type-of fields "the_geom")
+        nm (valid-featuretype-name (util/legal-chars name))
         flds (enchance-featuretype-fields fields)]
     (do
-      (sql/with-connection config/db (apply (partial sql/create-table nm)
-                                            flds))
+      (sql/with-connection config/db
+        (sql/transaction
+          (apply (partial sql/create-table nm) flds)
+          (insert-into-geometry-columns! nm type)))
       nm)))
 
-(defn delete-table! [tablename]
-  (sql/with-connection config/db (sql/drop-table tablename)))
+(defn delete-featuretype! [name]
+  (sql/with-connection
+    config/db
+    (sql/transaction
+      (sql/drop-table name)
+      (remove-from-geometry-columns! name))))
 
 (defn add-column!
   "Add column to table, return the (possibly corrected) fieldname."
   [tablename fieldname fieldtype]
   (let [valid-fieldname (util/legal-chars fieldname)]
     (do
-      (do-command! "ALTER TABLE" tablename
-                   "ADD COLUMN" valid-fieldname
-                   fieldtype)
+      (do-command! "ALTER TABLE " tablename
+                   " ADD COLUMN " valid-fieldname
+                   " " fieldtype)
       valid-fieldname)))
 
 (defn rename-column!
   "Rename column in table, return the (possibly corrected) new name."
   [tablename old-name new-name]
   (let [valid-name (util/legal-chars new-name)]
-    (do (do-command! "ALTER TABLE" tablename
-                     "RENAME COLUMN" (util/legal-chars old-name)
-                     "TO" valid-name)
+    (do (do-command! "ALTER TABLE " tablename
+                     " RENAME COLUMN " (util/legal-chars old-name)
+                     " TO " valid-name)
       valid-name)))
 
 (defn drop-column! [tablename column-name]
-  (do-command! "ALTER TABLE" tablename
-               "DROP COLUMN" (util/legal-chars column-name)))
+  (do-command! " ALTER TABLE " tablename
+               " DROP COLUMN " (util/legal-chars column-name)))
 
 (defn fields
   "Return table's fields in form:
@@ -117,3 +130,18 @@
   (let [results (run (str "select count(*) from " tablename
                           " where " field " is not null"))]
     (get-in results [0 :count])))
+
+(defn insert-into-geometry-columns! [tablename geom-type]
+  (sql/insert-record
+    "geometry_columns"
+    {:f_table_catalog ""
+     :f_table_schema "public"
+     :f_table_name tablename
+     :f_geometry_column "the_geom"
+     :coord_dimension 2
+     :srid 4326
+     :type geom-type}))
+
+(defn remove-from-geometry-columns! [tablename]
+  (do-command! "delete from geometry_columns
+                where f_table_name = '" tablename "'"))

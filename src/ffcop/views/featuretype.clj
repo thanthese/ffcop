@@ -131,7 +131,9 @@
       (let [final-name (db/create-featuretype! ft-name ft-fields)]
         (do
           (session/flash-put!
-            {:msg (str "Feature Type " final-name" created.")})
+            {:msg [:span
+                   "Feature Type " [:span.strong final-name]
+                   " created."]})
           (resp/redirect "../featuretype"))))))
 
 ; gui for deleting a featuretype
@@ -160,9 +162,11 @@
   (on-error
     (render "/featuretype")
     (do
-      (db/delete-table! ft-name)
+      (db/delete-featuretype! ft-name)
       (session/flash-put!
-        {:msg (str "Feature Type " ft-name " has been deleted.")})
+        {:msg [:span
+               "Feature Type " [:span.strong ft-name]
+               " has been deleted."]})
       (render "/featuretype"))))
 
 ; gui for editing featuretype

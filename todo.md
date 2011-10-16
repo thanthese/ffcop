@@ -1,5 +1,5 @@
-- security/users
 - geoserver rest api interaction
+- security/users
 - layers
 - icon pool
 - icon <--> layer association

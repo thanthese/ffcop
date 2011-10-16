@@ -1,11 +1,12 @@
 (ns ffcop.config)
 
-(def valid-types ["text" "integer" "boolean" "geometry"])
+(def valid-types ["text" "integer" "boolean"
+                  "POINT" "LINESTRING" "POLYGON"])
 
 (def default-fields
   "Default featuretype fields."
   [["id"              "integer"]
-   ["the_geom"        "geometry"]
+   ["the_geom"        "POINT"]
    ["description"     "text"]
    ["default_graphic" "text"]
    ["edit_url"        "text"]])
