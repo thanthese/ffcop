@@ -58,7 +58,7 @@
                :when (= name fieldname)]
            type)))
 
-(defn insert-into-geometry-columns! [tablename geom-type]
+(defn- register-with-geometry-columns! [tablename geom-type]
   (sql/insert-record
     "geometry_columns"
     {:f_table_catalog ""
@@ -69,7 +69,7 @@
      :srid 4326
      :type geom-type}))
 
-(defn remove-from-geometry-columns! [tablename]
+(defn- unregister-with-geometry-columns! [tablename]
   (do-command! "delete from geometry_columns
                 where f_table_name = '" tablename "'"))
 
@@ -83,7 +83,7 @@
       (sql/with-connection config/db
         (sql/transaction
           (apply (partial sql/create-table nm) flds)
-          (insert-into-geometry-columns! nm type)))
+          (register-with-geometry-columns! nm type)))
       nm)))
 
 (defn delete-featuretype! [name]
@@ -91,7 +91,7 @@
     config/db
     (sql/transaction
       (sql/drop-table name)
-      (remove-from-geometry-columns! name))))
+      (unregister-with-geometry-columns! name))))
 
 (defn add-column!
   "Add column to table, return the (possibly corrected) fieldname."

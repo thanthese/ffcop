@@ -28,7 +28,7 @@ different verb).
 # Context root issues
 
 Always use "/" to refer to the context root (css, js, renders, links,
-forms, ...). The exception is redirects, where you *must* to relative
+forms, ...). The exception is redirects, where you *must* use relative
 paths.
 
 # Coding conventions

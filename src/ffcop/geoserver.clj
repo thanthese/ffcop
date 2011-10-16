@@ -51,6 +51,13 @@
                  [:miny "-89"] [:maxy "89"]]])
              "POST"))
 
+(defn delete-featuretype [name]
+  (rest-call (str "/rest/layers/"
+                  (:workspace config/geoserver)
+                  ":" name)
+             nil
+             "DELETE"))
+
 (defn reload
   "Note: I'm note sure what this does, but nothing worked
   until I did it."

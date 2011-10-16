@@ -1,4 +1,3 @@
-- geoserver rest api interaction, remove featuretype
 - security/users
 - layers
 - icon pool

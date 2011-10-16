@@ -5,8 +5,9 @@ Free and Friendly COP.
 ## Requirements
 
 - Java 6
-- [leiningen](https://github.com/technomancy/leiningen)
-- postgresql 8.4, with postgis
+- [Leiningen](https://github.com/technomancy/leiningen)
+- Postgresql 8.4, with postgis
+- [Geoserver](http://geoserver.org/display/GEOS/Welcome)
 
 ## Usage
 
@@ -18,6 +19,9 @@ and initialize the database
 
     sh src/ffcop/database/reinit-db.sh
 
+and you'll also need to setup your geoserver to match the config
+settings in `src/ffcop/config.clj`.
+
 ### Run from REPL
 
     lein repl
@@ -27,7 +31,7 @@ and initialize the database
 
     lein ring server
 
-### Build war, no context root
+### Build war
 
 Option 1: with context root
 

@@ -150,6 +150,7 @@
   (on-error
     (render "/featuretype")
     (do
+      (geo/delete-featuretype ft-name)
       (db/delete-featuretype! ft-name)
       (session/flash-put!
         {:msg [:span
