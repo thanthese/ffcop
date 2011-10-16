@@ -58,6 +58,7 @@
   "/featuretype" []
   (let [names (db/featuretype-names)]
     (common/layout
+      (h-breadcrumbs)
       [:h1 "Feature Types"]
       (h-notifications (session/flash-get))
       [:p (link-to (str "/featuretype/create") "Create")
