@@ -180,7 +180,7 @@
          (form-to
            [:put (str "/featuretype/edit/" ft-name)]
            [:tr
-            [:td (text-field "name")]
+            [:td (text-field {:class "text"} "name")]
             [:td (drop-down "type" config/valid-types)]
             [:td (submit-button "Add")]])
          (for [[name type] fields]
