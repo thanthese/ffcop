@@ -2,8 +2,9 @@
   (:require [noir.server :as server])
   ; must explicitly include all view files for uberwar to work
   (:require [ffcop.views.featuretype])
-  (:use [hiccup.middleware :only (wrap-base-url)])
-  (:require [ffcop.views.map]))
+  (:require [ffcop.views.map])
+  (:require [ffcop.views.home])
+  (:use [hiccup.middleware :only (wrap-base-url)]))
 
 ; fix context root problem.  Temporary fix until noir issue is resolved:
 ;   https://github.com/ibdknox/noir/issues/32
