@@ -15,13 +15,12 @@
    :password "geoserver"
    :use-credentials true})
 
-(def valid-types ["text" "integer" "boolean"
-                  "POINT" "LINESTRING" "POLYGON"])
+(def valid-types ["text" "integer" "boolean" "geometry"])
 
 (def default-fields
   "Default featuretype fields."
   [["id"              "integer"]
-   ["the_geom"        "POINT"]
+   ["the_geom"        "geometry"]
    ["description"     "text"]
    ["default_graphic" "text"]
    ["edit_url"        "text"]])

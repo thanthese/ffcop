@@ -36,4 +36,4 @@
     (geo/reload)
     (session/flash-put!
       {:msg "Geoserver reloaded."})
-    (resp/redirect "../")))
+    (resp/redirect ".")))
