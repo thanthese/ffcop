@@ -1,5 +1,5 @@
 (ns ffcop.views.featuretype
-  (:use [ffcop.config :as config :only [R]])
+  (:require [ffcop.config :as config])
   (:require [ffcop.views.common :as common])
   (:require [ffcop.database.db :as db])
   (:require [noir.session :as session])
@@ -27,6 +27,15 @@
 
 (defn unserialize-fields [fields-string]
   (partition 2 (clojure.string/split fields-string #"\|")))
+
+(defn h-breadcrumbs
+  "Make a breadcrumb trail out of a series of crumbs of the form
+  [name url].  Implicitly adds home."
+  [& crumbs]
+  (let [with-root (conj crumbs ["Home" "/"])]
+    [:span.breakcrumbs (interpose [:span.breadcrumb-separator (h ">")]
+                                  (for [[name url] with-root]
+                                    (link-to url name)))]))
 
 (defn h-notifications [flash]
   [:div
@@ -71,6 +80,7 @@
     (let [fields (db/fields ft-name)
           count (db/record-count ft-name)]
       (common/layout
+        (h-breadcrumbs ["Feature Types" "/featuretype"])
         [:h1 "View Feature Type " ft-name]
         (h-featuretype-count ft-name count)
         (h-featuretype-fields fields)))))
@@ -83,6 +93,7 @@
         ft-fields config/default-fields}}
   (common/layout
     (include-js "/js/featuretype.js")
+    (h-breadcrumbs ["Feature Types" "/featuretype"])
     [:h1 "Feature Types / Create"]
     [:p "Default fields have special meaning. Don't delete them unless
         you know what you're doing."]
@@ -130,6 +141,7 @@
           count (db/record-count ft-name)]
       (common/layout
         (include-js "/js/featuretype.js")
+        (h-breadcrumbs ["Feature Types" "/featuretype"])
         [:h1 "Delete Feature Type " ft-name]
         (h-notifications (session/flash-get))
         (h-featuretype-count ft-name count)
@@ -159,6 +171,8 @@
     (let [fields (db/fields ft-name)]
       (common/layout
         (include-js "/js/featuretype.js")
+        (h-breadcrumbs ["Feature Types" "/featuretype"]
+                       ["View" (str "/featuretype/view/" ft-name)])
         [:h1 "Edit Feature Type " ft-name]
         (h-notifications (session/flash-get))
         [:table.span-8
@@ -198,5 +212,7 @@
   "/featuretype/field/delete/:ft-name/:name" {:keys [ft-name name]}
   (common/layout
     (include-js "/js/featuretype.js")
+    (h-breadcrumbs ["Feature Types" "/featuretype"]
+                   ["Edit" (str "/featuretype/edit" ft-name)])
     [:h1 "Delete field " name " from Feature Type " ft-name]
     (h-notifications (session/flash-get))))

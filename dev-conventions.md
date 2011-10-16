@@ -1,6 +1,18 @@
-# Naming
+# Partial templates
 
-Partial html templates have a "h-" prefix.
+- "h-" prefix.
+- Do *not* access the database. Ideally the only functions they call, if
+any, would be other partial templates.
+
+# Actions/Views
+
+Actions and views are combined into the same function. All database
+activity and other "model" work happens in a `let` statement at the top.
+
+# Database
+
+All sql queries exist in `db.sql`. Queries that changes database state
+have a `!` postfix.
 
 # REST
 
@@ -18,3 +30,7 @@ different verb).
 Always use "/" to refer to the context root (css, js, renders, links,
 forms, ...). The exception is redirects, where you *must* to relative
 paths.
+
+# Coding conventions
+
+- Functions do not contain blank lines.

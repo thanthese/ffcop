@@ -48,3 +48,17 @@ form {
 a:link:after, a:visited:after {
   content: "";
 }
+
+span.breakcrumbs a {
+  text-decoration: none !important;
+}
+
+span.breadcrumb-separator {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+span.breakcrumbs {
+  float: right;
+  font-size: 0.9em;
+}
