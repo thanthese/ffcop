@@ -30,20 +30,6 @@
 (defn unserialize-fields [fields-string]
   (partition 2 (clojure.string/split fields-string #"\|")))
 
-(defn h-breadcrumbs
-  "Make a breadcrumb trail out of a series of crumbs of the form
-  [name url].  Implicitly adds home."
-  [& crumbs]
-  (let [with-root (conj crumbs ["Home" "/"])]
-    [:span.breakcrumbs (interpose [:span.breadcrumb-separator (h ">")]
-                                  (for [[name url] with-root]
-                                    (link-to url name)))]))
-
-(defn h-notifications [flash]
-  [:div
-   (when (:error flash) [:div.error (:error flash)])
-   (when (:msg flash) [:div.notice (:msg flash)])])
-
 (defn h-featuretype-fields [fields]
   [:table.span-8
    [:tr [:th "Attribute Name"] [:th "Type"]]
@@ -60,9 +46,9 @@
   "/featuretype" []
   (let [names (db/featuretype-names)]
     (common/layout
-      (h-breadcrumbs)
+      (common/h-breadcrumbs)
       [:h1 "Feature Types"]
-      (h-notifications (session/flash-get))
+      (common/h-notifications (session/flash-get))
       [:p (link-to (str "/featuretype/create") "Create")
        " new feature type."]
       [:p "Displaying " [:span.strong (count names)] " feature types."]
@@ -83,7 +69,7 @@
     (let [fields (db/fields ft-name)
           count (db/record-count ft-name)]
       (common/layout
-        (h-breadcrumbs ["Feature Types" "/featuretype"])
+        (common/h-breadcrumbs ["Feature Types" "/featuretype"])
         [:h1 "View Feature Type " ft-name]
         (h-featuretype-count ft-name count)
         (h-featuretype-fields fields)))))
@@ -96,12 +82,12 @@
         ft-fields config/default-fields}}
   (common/layout
     (include-js "/js/featuretype.js")
-    (h-breadcrumbs ["Feature Types" "/featuretype"])
+    (common/h-breadcrumbs ["Feature Types" "/featuretype"])
     [:h1 "Feature Types / Create"]
     [:p "Default fields have special meaning. Don't delete them unless
         you know what you're doing."]
     [:p "Valid field names are alphanumeric characters and _."]
-    (h-notifications (session/flash-get))
+    (common/h-notifications (session/flash-get))
     (form-to {:onSubmit "return ft.onsubmit()"}
              [:put "/featuretype/create"]
              (hidden-field "serialized-ft-fields")
@@ -147,9 +133,9 @@
           count (db/record-count ft-name)]
       (common/layout
         (include-js "/js/featuretype.js")
-        (h-breadcrumbs ["Feature Types" "/featuretype"])
+        (common/h-breadcrumbs ["Feature Types" "/featuretype"])
         [:h1 "Delete Feature Type " ft-name]
-        (h-notifications (session/flash-get))
+        (common/h-notifications (session/flash-get))
         (h-featuretype-count ft-name count)
         [:p.strong "This operation cannot be undone."]
         (form-to {:onSubmit "return ft.ondelete()"}
@@ -179,10 +165,10 @@
     (let [fields (db/fields ft-name)]
       (common/layout
         (include-js "/js/featuretype.js")
-        (h-breadcrumbs ["Feature Types" "/featuretype"])
+        (common/h-breadcrumbs ["Feature Types" "/featuretype"])
         [:h1 "Edit Feature Type"]
         [:p "Edit feature type " [:span.strong ft-name] "."]
-        (h-notifications (session/flash-get))
+        (common/h-notifications (session/flash-get))
         [:table.span-8
          [:tr [:th "Attribute Name"] [:th "Type"]]
          (form-to
@@ -219,10 +205,10 @@
   "/featuretype/field/rename/:ft-name/:name" {:keys [ft-name name]}
   (common/layout
     (include-js "/js/featuretype.js")
-    (h-breadcrumbs ["Feature Types" "/featuretype"]
-                   ["Edit" (str "/featuretype/edit/" ft-name)])
+    (common/h-breadcrumbs ["Feature Types" "/featuretype"]
+                          ["Edit" (str "/featuretype/edit/" ft-name)])
     [:h1 "Rename field"]
-    (h-notifications (session/flash-get))
+    (common/h-notifications (session/flash-get))
     [:p
      "Rename field " [:span.strong name]
      " from Feature Type " [:span.strong ft-name] "."]
@@ -255,10 +241,11 @@
     (let [count (db/field-not-null-count ft-name name)]
       (common/layout
         (include-js "/js/featuretype.js")
-        (h-breadcrumbs ["Feature Types" "/featuretype"]
-                       ["Edit" (str "/featuretype/edit/" ft-name)])
+        (common/h-breadcrumbs
+          ["Feature Types" "/featuretype"]
+          ["Edit" (str "/featuretype/edit/" ft-name)])
         [:h1 "Delete field"]
-        (h-notifications (session/flash-get))
+        (common/h-notifications (session/flash-get))
         [:p
          "Delete field " [:span.strong name]
          " from Feature Type " [:span.strong ft-name] "."]

@@ -17,3 +17,17 @@
          [:body
           [:div.header [:span.strong "Welcome, "] "Unknown"]
           [:div.container content]]))
+
+(defn h-breadcrumbs
+  "Make a breadcrumb trail out of a series of crumbs of the form
+  [name url].  Implicitly adds home."
+  [& crumbs]
+  (let [with-root (conj crumbs ["Home" "/"])]
+    [:span.breakcrumbs (interpose [:span.breadcrumb-separator (h ">")]
+                                  (for [[name url] with-root]
+                                    (link-to url name)))]))
+
+(defn h-notifications [flash]
+  [:div
+   (when (:error flash) [:div.error (:error flash)])
+   (when (:msg flash) [:div.notice (:msg flash)])])
