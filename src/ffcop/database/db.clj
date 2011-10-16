@@ -62,6 +62,15 @@
                        ADD COLUMN " (util/legal-chars fieldname) " "
                        fieldtype)))))
 
+(defn rename-column! [tablename old-name new-name]
+  (do
+    (sql/with-connection
+      config/db (sql/do-commands
+                  (str "ALTER TABLE " tablename
+                       " RENAME COLUMN " (util/legal-chars old-name)
+                       " TO "
+                       (util/legal-chars new-name))))))
+
 (defn fields
   "Return table's fields in form:
       [[name1 type1] [name2 type2] ...]"

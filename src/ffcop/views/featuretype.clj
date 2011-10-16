@@ -172,8 +172,7 @@
     (let [fields (db/fields ft-name)]
       (common/layout
         (include-js "/js/featuretype.js")
-        (h-breadcrumbs ["Feature Types" "/featuretype"]
-                       ["View" (str "/featuretype/view/" ft-name)])
+        (h-breadcrumbs ["Feature Types" "/featuretype"])
         [:h1 "Edit Feature Type " ft-name]
         (h-notifications (session/flash-get))
         [:table.span-8
@@ -206,6 +205,35 @@
                " of type " [:span.strong type]
                " added to " [:span.strong name] "."]})
       (render "/featuretype/edit/:ft-name" {:ft-name ft-name}))))
+
+; gui for renaming field
+(defpage
+  "/featuretype/field/rename/:ft-name/:name" {:keys [ft-name name]}
+  (common/layout
+    (include-js "/js/featuretype.js")
+    (h-breadcrumbs ["Feature Types" "/featuretype"]
+                   ["Edit" (str "/featuretype/edit/" ft-name)])
+    [:h1 "Rename field"]
+    (h-notifications (session/flash-get))
+    [:p
+     "Rename field " [:span.strong name]
+     " from Feature Type " [:span.strong ft-name]]
+    (form-to [:post (str "/featuretype/field/rename/" ft-name "/" name)]
+             (text-field {:class "text"} "new-name" name)
+             (submit-button "Rename field"))))
+
+; action for renaming field
+(defpage
+  [:post "/featuretype/field/rename/:ft-name/:name"] {:keys [ft-name
+                                                             name
+                                                             new-name]}
+  (on-error
+    (render "/featuretype/field/rename/:ft-name/:name"
+            {:ft-name ft-name
+             :name name})
+    (do
+      (db/rename-column! ft-name name new-name)
+      (resp/redirect (str "../../../../featuretype/edit/" ft-name)))))
 
 ;; STUB
 ; gui for deleting field

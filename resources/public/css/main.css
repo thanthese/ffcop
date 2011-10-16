@@ -62,3 +62,7 @@ span.breakcrumbs {
   float: right;
   font-size: 0.9em;
 }
+
+input[type="submit"] {
+  margin: 0.5em;
+}
