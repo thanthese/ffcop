@@ -1,4 +1,3 @@
-- make "rename column" a button on the ft form
 - security/users
 - geoserver rest api interaction
 - layers
