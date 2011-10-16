@@ -9,7 +9,7 @@
   "/" []
   (common/layout
     [:h1 "ffcop"]
-    [:p "Welcome to ffcop, the Free and Friendly COP."]
+    [:p "Welcome to ffcop, the " [:em "Free and Friendly COP"] "."]
     [:dl
      [:dt (link-to "/featuretype" "Feature Type")]
      [:dd "View and edit feature types."]]))

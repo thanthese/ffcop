@@ -28,7 +28,7 @@ var ft = function() {
 
     ondelete: function() {
       return confirm("WARNING: This operation cannot be undone. "
-          + "Are you sure you want to delete this featuretype?")
+          + "Are you sure you want to continue?")
     }
   }
 }()

@@ -12,8 +12,9 @@
 (defn extract-error
   "Extract the human-readable part of the java exception."
   [e]
-  (.getMessage (or (.getNextException e)
-                   e)))
+  (let [msg (.getMessage (or (.getNextException e)
+                             e))]
+    (clojure.string/replace msg #" Position: \d*$" "")))
 
 (defmacro on-error
   "On error in body, dump pretty message in flash and perform action.
@@ -173,7 +174,8 @@
       (common/layout
         (include-js "/js/featuretype.js")
         (h-breadcrumbs ["Feature Types" "/featuretype"])
-        [:h1 "Edit Feature Type " ft-name]
+        [:h1 "Edit Feature Type"]
+        [:p "Edit feature type " [:span.strong ft-name] "."]
         (h-notifications (session/flash-get))
         [:table.span-8
          [:tr [:th "Attribute Name"] [:th "Type"]]
@@ -197,14 +199,14 @@
   [:put "/featuretype/edit/:ft-name"] {:keys [ft-name name type]}
   (on-error
     (render "/featuretype/edit/:ft-name" {:ft-name ft-name})
-    (do
-      (db/add-column! ft-name name type)
-      (session/flash-put!
-        {:msg [:span
-               "Field " [:span.strong name]
-               " of type " [:span.strong type]
-               " added to " [:span.strong name] "."]})
-      (render "/featuretype/edit/:ft-name" {:ft-name ft-name}))))
+    (let [new-name (db/add-column! ft-name name type)]
+      (do
+        (session/flash-put!
+          {:msg [:span
+                 "Field " [:span.strong new-name]
+                 " of type " [:span.strong type]
+                 " added to " [:span.strong ft-name] "."]})
+        (render "/featuretype/edit/:ft-name" {:ft-name ft-name})))))
 
 ; gui for renaming field
 (defpage
@@ -217,7 +219,7 @@
     (h-notifications (session/flash-get))
     [:p
      "Rename field " [:span.strong name]
-     " from Feature Type " [:span.strong ft-name]]
+     " from Feature Type " [:span.strong ft-name] "."]
     (form-to [:post (str "/featuretype/field/rename/" ft-name "/" name)]
              (text-field {:class "text"} "new-name" name)
              (submit-button "Rename field"))))
@@ -231,17 +233,50 @@
     (render "/featuretype/field/rename/:ft-name/:name"
             {:ft-name ft-name
              :name name})
-    (do
-      (db/rename-column! ft-name name new-name)
-      (resp/redirect (str "../../../../featuretype/edit/" ft-name)))))
+    (let [final-name (db/rename-column! ft-name name new-name)]
+      (do
+        (session/flash-put!
+          {:msg [:span "Field " [:span.strong name]
+                 " renamed to " [:span.strong final-name]
+                 " in " [:span.strong ft-name] "."]})
+        (resp/redirect (str "../../../../featuretype/edit/" ft-name))))))
 
-;; STUB
 ; gui for deleting field
 (defpage
   "/featuretype/field/delete/:ft-name/:name" {:keys [ft-name name]}
-  (common/layout
-    (include-js "/js/featuretype.js")
-    (h-breadcrumbs ["Feature Types" "/featuretype"]
-                   ["Edit" (str "/featuretype/edit" ft-name)])
-    [:h1 "Delete field " name " from Feature Type " ft-name]
-    (h-notifications (session/flash-get))))
+  (on-error
+    (resp/redirect (str "../../../../featuretype/edit/" ft-name))
+    (let [count (db/field-not-null-count ft-name name)]
+      (common/layout
+        (include-js "/js/featuretype.js")
+        (h-breadcrumbs ["Feature Types" "/featuretype"]
+                       ["Edit" (str "/featuretype/edit/" ft-name)])
+        [:h1 "Delete field"]
+        (h-notifications (session/flash-get))
+        [:p
+         "Delete field " [:span.strong name]
+         " from Feature Type " [:span.strong ft-name] "."]
+        [:p
+         "The feature type " [:span.strong ft-name]
+         " has " [:span.strong count]
+         " non-null features." ]
+        [:p.strong "This operation cannot be undone."]
+        (form-to
+          {:onSubmit "return ft.ondelete()"}
+          [:post (str "/featuretype/field/delete/" ft-name "/" name)]
+          (submit-button {:class "caution"} "Delete field"))))))
+
+; action for deleting field
+(defpage
+  [:post "/featuretype/field/delete/:ft-name/:name"] {:keys [ft-name
+                                                             name]}
+  (on-error
+    (render "/featuretype/field/delete/:ft-name/:name"
+            {:ft-name ft-name
+             :name name})
+    (do
+      (db/drop-column! ft-name name)
+      (session/flash-put!
+        {:msg [:span "Field " [:span.strong name]
+                   " deleted from " [:span.strong ft-name] "."]})
+      (resp/redirect (str "../../../../featuretype/edit/" ft-name)))))

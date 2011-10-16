@@ -10,6 +10,17 @@
                                    results [query]
                                    (into [] results))))
 
+(defn- do-command!
+  "Execute a single 'do something' query against the database.
+  Concatenates multiple parameters into a single command/str.
+  Also makes those pesky spaces unnecessary.
+    Example: (do-command 'drop table' some-table)"
+  [& command]
+  (sql/with-connection
+    config/db
+    (sql/do-commands
+      (apply str (interpose " " command)))))
+
 (defn featuretype-names
   "Current featuretype names."
   []
@@ -33,7 +44,7 @@
 
 (defn- enchance-featuretype-fields
   "Fields coming from the views aren't perfect.  Correct and expand on
-  them here."
+  them here.  For example, make 'id' a primary key."
   [fields]
   (for [[name type] fields]
     (let [n (util/legal-chars name)]
@@ -44,32 +55,38 @@
 (defn create-featuretype!
   "Create new table and return name."
   [name fields]
-  (let [n (valid-featuretype-name (util/legal-chars name))
-        fs (enchance-featuretype-fields fields)]
+  (let [nm (valid-featuretype-name (util/legal-chars name))
+        flds (enchance-featuretype-fields fields)]
     (do
-      (sql/with-connection config/db (apply (partial sql/create-table n)
-                                            fs))
-      n)))
+      (sql/with-connection config/db (apply (partial sql/create-table nm)
+                                            flds))
+      nm)))
 
 (defn delete-table! [tablename]
   (sql/with-connection config/db (sql/drop-table tablename)))
 
-(defn add-column! [tablename fieldname fieldtype]
-  (do
-    (sql/with-connection
-      config/db (sql/do-commands
-                  (str "ALTER TABLE " tablename "
-                       ADD COLUMN " (util/legal-chars fieldname) " "
-                       fieldtype)))))
+(defn add-column!
+  "Add column to table, return the (possibly corrected) fieldname."
+  [tablename fieldname fieldtype]
+  (let [valid-fieldname (util/legal-chars fieldname)]
+    (do
+      (do-command! "ALTER TABLE" tablename
+                   "ADD COLUMN" valid-fieldname
+                   fieldtype)
+      valid-fieldname)))
 
-(defn rename-column! [tablename old-name new-name]
-  (do
-    (sql/with-connection
-      config/db (sql/do-commands
-                  (str "ALTER TABLE " tablename
-                       " RENAME COLUMN " (util/legal-chars old-name)
-                       " TO "
-                       (util/legal-chars new-name))))))
+(defn rename-column!
+  "Rename column in table, return the (possibly corrected) new name."
+  [tablename old-name new-name]
+  (let [valid-name (util/legal-chars new-name)]
+    (do (do-command! "ALTER TABLE" tablename
+                     "RENAME COLUMN" (util/legal-chars old-name)
+                     "TO" valid-name)
+      valid-name)))
+
+(defn drop-column! [tablename column-name]
+  (do-command! "ALTER TABLE" tablename
+               "DROP COLUMN" (util/legal-chars column-name)))
 
 (defn fields
   "Return table's fields in form:
@@ -93,4 +110,10 @@
 
 (defn record-count [tablename]
   (let [results (run (str "select count(*) from " tablename))]
+    (get-in results [0 :count])))
+
+
+(defn field-not-null-count [tablename field]
+  (let [results (run (str "select count(*) from " tablename
+                          " where " field " is not null"))]
     (get-in results [0 :count])))
