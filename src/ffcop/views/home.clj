@@ -11,8 +11,8 @@
 (defpage
   "/" []
   (common/layout
-    [:h1 "ffcop"]
-    (common/h-notifications (session/flash-get))
+    {:crumb-list :none
+     :header "ffcop"}
     [:p "Welcome to ffcop, the " [:em "Free and Friendly COP"] "."]
     [:dl
      [:dt (link-to "/featuretype" "Feature Type")]
@@ -24,8 +24,7 @@
 (defpage
   "/reload" []
   (common/layout
-    (common/h-breadcrumbs)
-    [:h1 "Reload Geoserver"]
+    {:header "Reload Geoserver"}
     [:p "Sometimes a reload is just the thing to cure what ails ya."]
     (form-to [:post "/reload"]
              (submit-button "Reload Geoserver"))))

@@ -46,11 +46,8 @@
   "/featuretype" []
   (let [names (db/featuretype-names)]
     (common/layout
-      (common/h-breadcrumbs)
-      [:h1 "Feature Types"]
-      (common/h-notifications (session/flash-get))
-      [:p (link-to (str "/featuretype/create") "Create")
-       " new feature type."]
+      {:header "Feature Types"}
+      [:p (link-to "/featuretype/create" "Create") " new feature type."]
       [:p "Displaying " [:span.strong (count names)] " feature types."]
       [:table.span-8
        (for [name names]
@@ -69,8 +66,9 @@
     (let [fields (db/fields ft-name)
           count (db/record-count ft-name)]
       (common/layout
-        (common/h-breadcrumbs ["Feature Types" "/featuretype"])
-        [:h1 "View Feature Type " ft-name]
+        {:crumb-list [["Feature Types" "/featuretype"]]
+         :header "View Feature Type"}
+        [:p "Viewing feature type " [:span.strong ft-name]]
         (h-featuretype-count ft-name count)
         (h-featuretype-fields fields)))))
 
@@ -81,13 +79,12 @@
    :or {ft-name (db/valid-featuretype-name "untitled")
         ft-fields config/default-fields}}
   (common/layout
-    (include-js "/js/featuretype.js")
-    (common/h-breadcrumbs ["Feature Types" "/featuretype"])
-    [:h1 "Feature Types / Create"]
+    {:js-list ["/js/featuretype.js"]
+     :crumb-list [["Feature Types" "/featuretype"]]
+     :header "Create Feature Type"}
     [:p "Default fields have special meaning. Don't delete them unless
         you know what you're doing."]
     [:p "Valid field names are alphanumeric characters and _."]
-    (common/h-notifications (session/flash-get))
     (form-to {:onSubmit "return ft.onsubmit()"}
              [:put "/featuretype/create"]
              (hidden-field "serialized-ft-fields")
@@ -132,10 +129,9 @@
     (let [fields (db/fields ft-name)
           count (db/record-count ft-name)]
       (common/layout
-        (include-js "/js/featuretype.js")
-        (common/h-breadcrumbs ["Feature Types" "/featuretype"])
-        [:h1 "Delete Feature Type " ft-name]
-        (common/h-notifications (session/flash-get))
+        {:js-list ["/js/featuretype.js"]
+         :crumb-list [["Feature Types" "/featuretype"]]
+         :header "Delete Feature Type"}
         (h-featuretype-count ft-name count)
         [:p.strong "This operation cannot be undone."]
         (form-to {:onSubmit "return ft.ondelete()"}
@@ -165,11 +161,10 @@
     (resp/redirect "../../featuretype")
     (let [fields (db/fields ft-name)]
       (common/layout
-        (include-js "/js/featuretype.js")
-        (common/h-breadcrumbs ["Feature Types" "/featuretype"])
-        [:h1 "Edit Feature Type"]
+        {:js-list ["/js/featuretype.js"]
+         :crumb-list [["Feature Types" "/featuretype"]]
+         :header "Edit Feature Type"}
         [:p "Edit feature type " [:span.strong ft-name] "."]
-        (common/h-notifications (session/flash-get))
         [:table.span-8
          [:tr [:th "Attribute Name"] [:th "Type"]]
          (form-to
@@ -205,11 +200,10 @@
 (defpage
   "/featuretype/field/rename/:ft-name/:name" {:keys [ft-name name]}
   (common/layout
-    (include-js "/js/featuretype.js")
-    (common/h-breadcrumbs ["Feature Types" "/featuretype"]
-                          ["Edit" (str "/featuretype/edit/" ft-name)])
-    [:h1 "Rename field"]
-    (common/h-notifications (session/flash-get))
+    {:js-list ["/js/featuretype.js"]
+     :crumb-list [["Feature Types" "/featuretype"]
+                  ["Edit" (str "/featuretype/edit/" ft-name)]]
+     :header "Rename field"}
     [:p
      "Rename field " [:span.strong name]
      " from Feature Type " [:span.strong ft-name] "."]
@@ -241,12 +235,10 @@
     (resp/redirect (str "../../../../featuretype/edit/" ft-name))
     (let [count (db/field-not-null-count ft-name name)]
       (common/layout
-        (include-js "/js/featuretype.js")
-        (common/h-breadcrumbs
-          ["Feature Types" "/featuretype"]
-          ["Edit" (str "/featuretype/edit/" ft-name)])
-        [:h1 "Delete field"]
-        (common/h-notifications (session/flash-get))
+        {:js-list ["/js/featuretype.js"]
+         :crumb-list [["Feature Types" "/featuretype"]
+                      ["Edit" (str "/featuretype/edit/" ft-name)]]
+         :header "Delete field"}
         [:p
          "Delete field " [:span.strong name]
          " from Feature Type " [:span.strong ft-name] "."]

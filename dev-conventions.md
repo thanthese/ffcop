@@ -1,6 +1,5 @@
 # Partial templates
 
-- "h-" prefix.
 - Do *not* access the database. Ideally the only functions they call, if
 any, would be other partial templates.
 
